@@ -24,7 +24,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "DragAndDrop",
+                    "name": "Grab",
                     "type": "Button",
                     "id": "d6ccc6a7-0909-4ceb-bed1-fc2662c3623c",
                     "expectedControlType": "Button",
@@ -92,11 +92,11 @@
                 {
                     "name": "",
                     "id": "15816e3d-235a-4a63-9652-2c3a70802b8e",
-                    "path": "",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "DragAndDrop",
+                    "action": "Grab",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

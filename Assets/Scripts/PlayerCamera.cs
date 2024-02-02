@@ -1,24 +1,21 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerCamera : MonoBehaviour
 {
-    PlayerInput playerInput;
-    InputAction lookAction;
-    Rigidbody rb;
+    private InputManager inputManager;
 
-    [Header("Mouse Sensitivity")]
-    [SerializeField] float sensX;
-    [SerializeField] float sensY;
+    private Vector3 playerOrientation;
 
-    [SerializeField] Transform cameraHolder;
-    [SerializeField] Vector3 currentRotation;
+    public Transform cameraHolder;
+
+    [SerializeField, Range(0, 2)] private float sensitivity;
+    [SerializeField, Range(0, 100)] private float smoothing;
+
+    private Vector2 smoothedDelta = Vector2.zero;
 
     private void Awake()
     {
-        rb = PlayerScript.Instance.rigidBody;
-        playerInput = GetComponent<PlayerInput>();
-        lookAction = playerInput.actions.FindAction("Look");
+        inputManager = InputManager.Instance;
     }
 
     private void Start()
@@ -26,42 +23,28 @@ public class PlayerCamera : MonoBehaviour
         HideCursor();
     }
 
-    private void OnEnable()
+    private void Update()
     {
-        lookAction.performed += Look;
+        Look();
     }
 
-    private void OnDisable()
+    private void Look()
     {
-        lookAction.performed -= Look;
-    }
+        Vector3 mouseDelta = inputManager.GetMouseDelta();
 
-    private void Look(InputAction.CallbackContext context)
-    {
-        Vector3 mouseDelta = lookAction.ReadValue<Vector2>();
+        mouseDelta *= sensitivity;
 
-        currentRotation.x += mouseDelta.x;
+        smoothedDelta = Vector2.Lerp(smoothedDelta, mouseDelta, 1f / smoothing);
 
-        float clampValueX = 180f;
-        if (currentRotation.x > clampValueX)
-        {
-            currentRotation.x -= clampValueX * 2;
-        }
-        if (currentRotation.x < -clampValueX)
-        {
-            currentRotation.x += clampValueX * 2;
-        }
+        playerOrientation.x += mouseDelta.x;
+        playerOrientation.y -= mouseDelta.y;
 
-        currentRotation.y -= mouseDelta.y;
+        playerOrientation.x = Mathf.Repeat(playerOrientation.x + 180f, 360f) - 180f;
+        playerOrientation.y = Mathf.Clamp(playerOrientation.y, -30f, 30f);
 
-        float clampValueY = 80f;
-        currentRotation.y = Mathf.Clamp(currentRotation.y, -clampValueY, clampValueY);
+        cameraHolder.rotation = Quaternion.Euler(new Vector3(playerOrientation.y, cameraHolder.rotation.eulerAngles.y, 0));
 
-        //vertical
-        cameraHolder.rotation = Quaternion.Euler(new Vector3(currentRotation.y, cameraHolder.rotation.eulerAngles.y, 0));
-
-        //horizontal
-        rb.rotation = Quaternion.Euler(new Vector3(0, currentRotation.x, 0));
+        transform.rotation = Quaternion.Euler(new Vector3(0, playerOrientation.x, 0));
     }
 
     private void HideCursor()

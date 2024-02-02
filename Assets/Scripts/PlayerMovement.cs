@@ -1,23 +1,22 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    PlayerInput playerInput;
-    InputAction moveAction;
+    private InputManager inputManager;
+    private PlayerCamera playerCamera;
 
     [SerializeField] private float speed;
 
-    Rigidbody rb;
+    private Rigidbody rb;
 
     private void Awake()
     {
-        playerInput = GetComponent<PlayerInput>();
-        moveAction = playerInput.actions.FindAction("Move");
+        inputManager = InputManager.Instance;
     }
 
     private void Start()
     {
+        playerCamera = GetComponent<PlayerCamera>();
         rb = GetComponent<Rigidbody>();
     }
 
@@ -28,17 +27,20 @@ public class PlayerMovement : MonoBehaviour
 
     private void Move()
     {
-        Vector3 value = moveAction.ReadValue<Vector2>();
+        var movementInput = inputManager.GetMovementInput();
 
-        if (value == Vector3.zero)
+        if (movementInput == Vector2.zero)
         {
             rb.velocity = new Vector3(0, rb.velocity.y, 0);
         }
 
-        Vector3 direction = new Vector3(value.x, 0, value.y);
+        Vector3 cameraForward = playerCamera.cameraHolder.forward;
+        Vector3 cameraRight = playerCamera.cameraHolder.right;
+
+        Vector3 direction = (cameraForward * movementInput.y + cameraRight * movementInput.x).normalized;
         Vector3 velocity = direction * speed * Time.deltaTime;
         velocity.y = rb.velocity.y;
 
-        rb.AddRelativeForce(velocity);
+        rb.velocity = velocity;
     }
 }
